@@ -22,7 +22,9 @@ def test_get_item():
 
 
 def test_get_item_unknown_returns_404():
-    assert client.get("/items/999").status_code == 404
+    response = client.get("/items/999")
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Item not found"}
 
 
 def test_version():
@@ -41,3 +43,30 @@ def test_get_item_name_unknown_returns_404():
     response = client.get("/items/999/name")
     assert response.status_code == 404
     assert response.json() == {"detail": "Item not found"}
+
+
+def test_list_items():
+    response = client.get("/items")
+    assert response.status_code == 200
+    body = response.json()
+    assert isinstance(body, list)
+    assert all(set(item) == {"id", "name"} for item in body)
+    assert body == [{"id": 1, "name": "widget"}]
+
+
+def test_list_items_empty(monkeypatch):
+    monkeypatch.setattr("app.main.ITEMS", {})
+    response = client.get("/items")
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+def test_list_items_in_insertion_order(monkeypatch):
+    monkeypatch.setattr(
+        "app.main.ITEMS",
+        {1: {"id": 1, "name": "b"}, 2: {"id": 2, "name": "a"}},
+    )
+    assert client.get("/items").json() == [
+        {"id": 1, "name": "b"},
+        {"id": 2, "name": "a"},
+    ]
