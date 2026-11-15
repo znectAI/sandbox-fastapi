@@ -29,3 +29,15 @@ def test_version():
     response = client.get("/version")
     assert response.status_code == 200
     assert response.json() == {"version": "0.1.0"}
+
+
+def test_get_item_name():
+    response = client.get("/items/1/name")
+    assert response.status_code == 200
+    assert response.json() == {"name": "widget"}
+
+
+def test_get_item_name_unknown_returns_404():
+    response = client.get("/items/999/name")
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Item not found"}
