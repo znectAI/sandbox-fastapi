@@ -1,0 +1,7 @@
+# Keep CI action versions current (opens PRs that go through the same CI + approval gate).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
