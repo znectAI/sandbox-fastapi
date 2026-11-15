@@ -37,3 +37,8 @@ def get_item_name(item_id: int) -> dict:
     if item is None:
         raise HTTPException(status_code=404, detail="Item not found")
     return {"name": item["name"]}
+
+
+@app.get("/items")
+def list_items() -> list[dict]:
+    return [{"id": item["id"], "name": item["name"]} for item in ITEMS.values()]

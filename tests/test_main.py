@@ -41,3 +41,19 @@ def test_get_item_name_unknown_returns_404():
     response = client.get("/items/999/name")
     assert response.status_code == 404
     assert response.json() == {"detail": "Item not found"}
+
+
+def test_list_items():
+    response = client.get("/items")
+    assert response.status_code == 200
+    body = response.json()
+    assert isinstance(body, list)
+    assert all(set(item) == {"id", "name"} for item in body)
+    assert body == [{"id": 1, "name": "widget"}]
+
+
+def test_list_items_empty(monkeypatch):
+    monkeypatch.setattr("app.main.ITEMS", {})
+    response = client.get("/items")
+    assert response.status_code == 200
+    assert response.json() == []
