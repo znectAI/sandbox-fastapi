@@ -23,3 +23,9 @@ def test_get_item():
 
 def test_get_item_unknown_returns_404():
     assert client.get("/items/999").status_code == 404
+
+
+def test_version():
+    response = client.get("/version")
+    assert response.status_code == 200
+    assert response.json() == {"version": "0.1.0"}

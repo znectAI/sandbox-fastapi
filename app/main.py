@@ -3,6 +3,8 @@ from fastapi import FastAPI, HTTPException
 
 app = FastAPI()
 
+VERSION = "0.1.0"
+
 ITEMS = {1: {"id": 1, "name": "widget"}}
 
 
@@ -14,6 +16,11 @@ def root():
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/version")
+def version() -> dict:
+    return {"version": VERSION}
 
 
 @app.get("/items/{item_id}")
