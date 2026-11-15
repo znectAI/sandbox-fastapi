@@ -27,7 +27,7 @@ def version() -> dict:
 def get_item(item_id: int):
     item = ITEMS.get(item_id)
     if item is None:
-        raise HTTPException(status_code=404, detail="Item not found")
+        raise HTTPException(status_code=404, detail="not found")
     return item
 
 
@@ -35,10 +35,11 @@ def get_item(item_id: int):
 def get_item_name(item_id: int) -> dict:
     item = ITEMS.get(item_id)
     if item is None:
-        raise HTTPException(status_code=404, detail="Item not found")
+        raise HTTPException(status_code=404, detail="not found")
     return {"name": item["name"]}
 
 
 @app.get("/items")
 def list_items() -> list[dict]:
-    return [{"id": item["id"], "name": item["name"]} for item in ITEMS.values()]
+    items = [{"id": item["id"], "name": item["name"]} for item in ITEMS.values()]
+    return sorted(items, key=lambda item: item["name"])
