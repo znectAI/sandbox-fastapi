@@ -1,0 +1,74 @@
+# CI gate for agent-built PRs (phase 2, step 1).
+# Job names (lint, test, secrets, audit) are the required status checks in
+# branch protection; renaming a job means updating scripts/protect_main.sh.
+# Agents cannot edit this file: their GitHub App token has no workflows permission.
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.12"
+  COVERAGE_FLOOR: "80"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - run: pip install -r requirements-dev.txt
+      # Same command the worker runs, so "passes locally" means "passes in CI".
+      - run: ruff check . --output-format=github
+
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - run: pip install -r requirements-dev.txt
+      - run: pytest -q --cov=app --cov-report=term-missing --cov-fail-under=${{ env.COVERAGE_FLOOR }}
+
+  secrets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # scan the whole branch history, not just the tip
+      # The gitleaks GitHub Action needs a paid licence for org repos; the CLI image doesn't.
+      - run: >
+          docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.21.2
+          detect --source=/repo --redact --verbose --no-banner
+
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - run: pip install pip-audit
+      # Runtime dependencies only; dev tools don't ship.
+      - run: pip-audit -r requirements.txt
