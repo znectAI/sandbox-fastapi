@@ -42,3 +42,8 @@ def get_item_name(item_id: int) -> dict:
 @app.get("/items")
 def list_items() -> list[dict]:
     return [{"id": item["id"], "name": item["name"]} for item in ITEMS.values()]
+
+
+@app.get("/items/{item_id}/exists")
+def item_exists(item_id: int) -> dict:
+    return {"exists": item_id in ITEMS}
