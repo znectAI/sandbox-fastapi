@@ -70,3 +70,29 @@ def test_list_items_in_insertion_order(monkeypatch):
         {"id": 1, "name": "b"},
         {"id": 2, "name": "a"},
     ]
+
+
+def test_ac1_item_exists_true():
+    response = client.get("/items/1/exists")
+    assert response.status_code == 200
+    assert response.json() == {"exists": True}
+    assert response.json()["exists"] is True
+
+
+def test_ac2_item_exists_false():
+    response = client.get("/items/999/exists")
+    assert response.status_code == 200
+    assert response.json() == {"exists": False}
+    assert response.json()["exists"] is False
+
+
+def test_ac3_item_exists_non_integer_returns_422():
+    assert client.get("/items/abc/exists").status_code == 422
+    assert client.get("/items/1.5/exists").status_code == 422
+
+
+def test_ac1_item_exists_uses_current_items(monkeypatch):
+    monkeypatch.setattr("app.main.ITEMS", {})
+    response = client.get("/items/1/exists")
+    assert response.status_code == 200
+    assert response.json() == {"exists": False}
