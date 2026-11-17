@@ -96,3 +96,26 @@ def test_ac1_item_exists_uses_current_items(monkeypatch):
     response = client.get("/items/1/exists")
     assert response.status_code == 200
     assert response.json() == {"exists": False}
+
+
+def test_ac1_ping_returns_pong():
+    response = client.get("/ping")
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("application/json")
+    assert response.json() == {"pong": True}
+
+
+def test_ac1_ping_ignores_query_string():
+    response = client.get("/ping?x=1")
+    assert response.status_code == 200
+    assert response.json() == {"pong": True}
+
+
+def test_ac2_ping_pong_is_boolean():
+    response = client.get("/ping")
+    assert response.json()["pong"] is True
+    assert response.text.replace(" ", "") == '{"pong":true}'
+
+
+def test_ac3_ping_post_not_allowed():
+    assert client.post("/ping").status_code == 405
