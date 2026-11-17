@@ -23,6 +23,11 @@ def version() -> dict:
     return {"version": VERSION}
 
 
+@app.get("/ping")
+def ping() -> dict:
+    return {"pong": True}
+
+
 @app.get("/items/{item_id}")
 def get_item(item_id: int):
     item = ITEMS.get(item_id)
